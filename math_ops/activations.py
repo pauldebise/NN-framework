@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import numpy as np
+from core.layer import Layer
 
 class ActivationFunction(ABC):
     """
@@ -16,16 +18,26 @@ class ActivationFunction(ABC):
 class ReLU(ActivationFunction):
     """Fonction d'activation Rectified Linear Unit."""
     def compute(self, x):
-        pass
+        return np.maximum(0, x)
 
     def derivative(self, x):
-        pass
+        return np.where(x > 0, 1.0, 0.0)
 
 
 class Sigmoid(ActivationFunction):
     """Fonction d'activation Sigmoïde."""
     def compute(self, x):
-        pass
+        return 1 / (1 + np.exp(-x))
+
+    def derivative(self, x):
+        #return np.divide(np.exp(-x), (1 + np.exp(-x))**2)
+        sigmoid = self.compute(x)
+        return sigmoid * (1 - sigmoid) #Equivalent mathématiquement et plus rapide
+
+class Softmax(ActivationFunction):
+    """Fonction d'activation Softmax."""
+    def compute(self, x):
+        return np.exp(x) / np.sum(np.exp(x), axis=0)
 
     def derivative(self, x):
         pass
