@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import numpy as np
 
 class LossFunction(ABC):
     """
@@ -15,7 +16,8 @@ class LossFunction(ABC):
 class MSE(LossFunction):
     """Erreur Quadratique Moyenne (Mean Squared Error)."""
     def calculate(self, y_true, y_pred):
-        pass
+        return np.mean(np.power(y_true - y_pred, 2))
 
     def derivative(self, y_true, y_pred):
-        pass
+        n = np.size(y_true)
+        2*(y_pred - y_true)/n
