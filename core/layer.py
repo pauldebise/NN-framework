@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import numpy as np
 
 class Layer(ABC):
     """
@@ -33,11 +34,15 @@ class Dense(Layer):
         Initialise les poids et les biais de manière aléatoire.
         """
         super().__init__()
-        self.weights = None  # Sera une matrice numpy
-        self.bias = None     # Sera un vecteur numpy
+        self.weights = np.random.randn(output_size, input_size)
+        self.bias = np.random.randn(output_size, 1)
 
     def forward(self, input_data):
-        pass
+        self.input_data = input_data
+        return np.dot(input_data, self.weights) + self.bias
 
     def backward(self, output_gradient, learning_rate):
-        pass
+        weight_gradient = np.dot(output_gradient, self.input_data.T)
+        self.weights -= learning_rate * weight_gradient
+        self.bias -= learning_rate * output_gradient
+        return np.dot(self.weights.T, output_gradient)
