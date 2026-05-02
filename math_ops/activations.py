@@ -30,30 +30,39 @@ class Sigmoid(ActivationFunction):
         return 1 / (1 + np.exp(-x))
 
     def derivative(self, x):
-        #return np.divide(np.exp(-x), (1 + np.exp(-x))**2)
+        
         sigmoid = self.compute(x)
-        return sigmoid * (1 - sigmoid) #Equivalent mathématiquement et plus rapide
-
+        return sigmoid * (1 - sigmoid)
+    
 class Softmax(ActivationFunction):
     """Fonction d'activation Softmax."""
     def compute(self, x):
         return np.exp(x) / np.sum(np.exp(x), axis=0)
 
     def derivative(self, x):
-        pass
+        softmax = self.compute(x)
+    # Reshape softmax to a column vector
+        s = softmax.reshape(-1, 1)
+    # Compute the Jacobian matrix
+        jacobian = np.diagflat(s) - np.dot(s, s.T)
+        return jacobian    
+
 
 
 class ActivationLayer(Layer):
-    """
-    Couche qui applique une fonction d'activation aux données.
-    Hérite de Layer et utilise la Composition avec ActivationFunction.
-    """
-    def __init__(self, activation_strategy: ActivationFunction):
+    def __init__(self, activation_strategy):
         super().__init__()
         self.activation = activation_strategy
+        self.input = None
 
     def forward(self, input_data):
-        pass
+        self.input = input_data
+        return self.activation.compute(self.input)
 
     def backward(self, output_gradient, learning_rate):
-        pass
+        # Si c'est un Softmax, on fait un produit matriciel (Jacobienne @ gradient)
+        if isinstance(self.activation, Softmax):
+            return np.dot(self.activation.derivative(self.input), output_gradient)
+        
+        # Sinon (ReLU, Sigmoid), multiplication élément par élément
+        return output_gradient * self.activation.derivative(self.input)
