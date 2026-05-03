@@ -15,6 +15,7 @@ class MNISTLoader:
         images = images.reshape(60000, 84)
         labels = labels.reshape(60000,10)
         """jevaispeteruncablesurgithubmaisc'estpasgravec'estlaviekonmenetuconnaisninhoouaisswizeuppourlanouvellemixtapec'esstvraimentchiantje veux juste ajouterdeuxlignesetgithubmetunnelsurmodifierlabranchmais commeon dit la vie est faite de branches auxquelles il faut s'agripper afin de rester etanche et de ne pas finir sous l'eau sinon tu n'es plus un bateau et un bateau c'est cool un peu comme une mouette ou un goeland quoi que ils sont plutot chiants les goelands mais ils chient en volant"""
+
         return images, labels
 
     def normalize(self, data):
