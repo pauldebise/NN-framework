@@ -34,15 +34,20 @@ class Dense(Layer):
         Initialise les poids et les biais de manière aléatoire.
         """
         super().__init__()
-        self.weights = np.random.randn(output_size, input_size)
-        self.bias = np.random.randn(output_size, 1)
+        self.weights = np.random.randn(input_size, output_size)
+        self.bias = np.random.randn(1, output_size)
 
     def forward(self, input_data):
         self.input_data = input_data
         return np.dot(input_data, self.weights) + self.bias
 
     def backward(self, output_gradient, learning_rate):
-        weight_gradient = np.dot(output_gradient, self.input_data.T)
+        weight_gradient = np.dot(self.input_data.T, output_gradient)
+        bias_gradient = np.sum(output_gradient, axis=0, keepdims=True)
+
+        input_gradient = np.dot(output_gradient, self.weights.T)
+
         self.weights -= learning_rate * weight_gradient
-        self.bias -= learning_rate * output_gradient
-        return np.dot(self.weights.T, output_gradient)
+        self.bias -= learning_rate * bias_gradient
+
+        return input_gradient
