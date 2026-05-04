@@ -32,7 +32,7 @@ class Network:
             output_data = layer.forward(output_data)
         return output_data
 
-    def fit(self, x_train, y_train, epochs: int, learning_rate: float):
+    def fit(self, x_train, y_train, x_test, y_test, epochs: int, learning_rate: float):
         """
         Entraîne le réseau de neurones sur un jeu de données.
         (Boucle sur les époques, calcul du forward, du loss, puis du backward).
@@ -46,8 +46,35 @@ class Network:
             gradient = self.loss_function.derivative(y_train, predictions)
             for layer in reversed(self.layers):
                 gradient = layer.backward(gradient, learning_rate)
+
             if (epoch + 1) % 10 == 0 or epoch == epochs - 1:
-                print(f"Epoch {epoch + 1}/{epochs} - Loss: {error:.4f} - Accuracy: {np.exp(-error)*100:.2f}%")
+                y_pred_classes = np.argmax(predictions, axis=1)
+                y_true_classes = np.argmax(y_train, axis=1)
+                train_accuracy = np.mean(y_pred_classes == y_true_classes)
+
+                testloss, testaccuracy = self.evaluate(x_test, y_test)
+
+                print(f"Epoch {epoch + 1}/{epochs} | "
+                      f"Train Loss: {error:.4f} - Acc: {train_accuracy * 100:.2f}% | "
+                      f"Test Loss: {testloss:.4f} - Acc: {testaccuracy * 100:.2f}%")
+
+    def evaluate(self, x_test, y_test):
+        """
+        Évalue les performances du réseau sur un jeu de données de test.
+        Retourne la perte (loss) et la précision (accuracy globale).
+        """
+        if self.loss_function is None:
+            raise ValueError("Le réseau n'est pas compilé.")
+
+        predictions = self.forward(x_test)
+
+        loss = self.loss_function.calculate(y_test, predictions)
+
+        y_pred_classes = np.argmax(predictions, axis=1)
+        y_true_classes = np.argmax(y_test, axis=1)
+        accuracy = np.mean(y_pred_classes == y_true_classes)
+
+        return loss, accuracy
 
     def predict(self, x_test):
         """Prédit les sorties pour un jeu de données de test."""
@@ -78,11 +105,14 @@ class Network:
             total_param += nb_params
             layer_details.append((layer_name, nb_params, current_shape))
 
-        print("\nModel summary:")
-        for layer_detail in layer_details:
-            layer_name, nb_params, current_shape = layer_detail
-            print(f"{layer_name:<20} {nb_params:<10} {current_shape}")
-        print(f"Total number of parameters: {total_param}")
+        if print_info:
+            print("\nModel summary:")
+            for layer_detail in layer_details:
+                layer_name, nb_params, current_shape = layer_detail
+                print(f"{layer_name:<20} {nb_params:<10} {current_shape}")
+            print(f"Total number of parameters: {total_param}")
+
+        return layer_details
 
     def save(self, filepath: str):
         """
@@ -165,10 +195,15 @@ if __name__ == '__main__':
     n.compile(CategoricalCrossEntropy())
     #n.compile(MSE())
     n.summary()
-    dataloader = MNISTLoader(r"..\data\mnist_train.csv")
-    x_raw, y_raw = dataloader.load_data()
 
-    x_train = dataloader.normalize(x_raw)
-    y_train = dataloader.to_categorical(y_raw)
+    dataloader_train = MNISTLoader(r"..\data\mnist_train.csv")
+    x_raw, y_raw = dataloader_train.load_data()
+    x_train = dataloader_train.normalize(x_raw)
+    y_train = dataloader_train.to_categorical(y_raw)
 
-    n.fit(x_train, y_train, 1000, 5)
+    dataloader_train = MNISTLoader(r"..\data\mnist_test.csv")
+    x_raw, y_raw = dataloader_train.load_data()
+    x_test = dataloader_train.normalize(x_raw)
+    y_test = dataloader_train.to_categorical(y_raw)
+
+    n.fit(x_train, y_train, x_test, y_test, 100, 5)
