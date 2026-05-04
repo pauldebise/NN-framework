@@ -4,6 +4,8 @@ from core.layer import Dense
 from math_ops.activations import ReLU, Sigmoid, Softmax, ActivationLayer, LeakyReLU
 import numpy as np
 import json
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 from utils.data_loader import MNISTLoader
 
 
@@ -32,31 +34,75 @@ class Network:
             output_data = layer.forward(output_data)
         return output_data
 
-    def fit(self, x_train, y_train, x_test, y_test, epochs: int, learning_rate: float):
+    def _generate_batches(self, X, y, batch_size, drop_last=True):
+        """Helper that makes batches."""
+        num_samples = X.shape[0]
+        indices = np.random.permutation(num_samples)
+        X_shuffled = X[indices]
+        y_shuffled = y[indices]
+
+        for i in range(0, num_samples, batch_size):
+            if drop_last and i + batch_size > num_samples:
+                break
+            yield X_shuffled[i:i + batch_size], y_shuffled[i:i + batch_size]
+
+    def fit(self, x_train, y_train, epochs: int, learning_rate: float, batch_size: int = 32, validation_data=None):
         """
-        Entraîne le réseau de neurones sur un jeu de données.
-        (Boucle sur les époques, calcul du forward, du loss, puis du backward).
+        Trains the network and returns a dictionary with training info.
         """
+        if self.loss_function is None:
+            raise ValueError("Le réseau n'est pas compilé.")
+
+        history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': []}
+        has_validation = validation_data is not None
+
         for epoch in range(epochs):
-            if self.loss_function is None:
-                raise ValueError("Le réseau n'est pas compilé.")
+            epoch_loss = 0.0
+            epoch_correct = 0
+            samples_seen = 0
 
-            predictions = self.forward(x_train)
-            error = self.loss_function.calculate(y_train, predictions)
-            gradient = self.loss_function.derivative(y_train, predictions)
-            for layer in reversed(self.layers):
-                gradient = layer.backward(gradient, learning_rate)
+            batches = list(self._generate_batches(x_train, y_train, batch_size))
+            pbar = tqdm(batches, desc=f"Epoch {epoch + 1}/{epochs}", unit="batch", leave=True)
 
-            if (epoch + 1) % 10 == 0 or epoch == epochs - 1:
+            for x_batch, y_batch in pbar:
+                current_batch_size = x_batch.shape[0]
+                samples_seen += current_batch_size
+
+                predictions = self.forward(x_batch)
+
+                loss = self.loss_function.calculate(y_batch, predictions)
+                epoch_loss += loss * current_batch_size
+
                 y_pred_classes = np.argmax(predictions, axis=1)
-                y_true_classes = np.argmax(y_train, axis=1)
-                train_accuracy = np.mean(y_pred_classes == y_true_classes)
+                y_true_classes = np.argmax(y_batch, axis=1)
+                epoch_correct += np.sum(y_pred_classes == y_true_classes)
 
-                testloss, testaccuracy = self.evaluate(x_test, y_test)
+                gradient = self.loss_function.derivative(y_batch, predictions)
+                for layer in reversed(self.layers):
+                    gradient = layer.backward(gradient, learning_rate)
 
-                print(f"Epoch {epoch + 1}/{epochs} | "
-                      f"Train Loss: {error:.4f} - Acc: {train_accuracy * 100:.2f}% | "
-                      f"Test Loss: {testloss:.4f} - Acc: {testaccuracy * 100:.2f}%")
+                running_loss = epoch_loss / samples_seen
+                running_acc = epoch_correct / samples_seen
+                pbar.set_postfix({'loss': f"{running_loss:.4f}", 'acc': f"{running_acc * 100:.2f}%"})
+
+            train_loss = epoch_loss / samples_seen
+            train_acc = epoch_correct / samples_seen
+            history['loss'].append(train_loss)
+            history['accuracy'].append(train_acc)
+
+            if has_validation:
+                x_val, y_val = validation_data
+                val_loss, val_acc = self.evaluate(x_val, y_val)
+                history['val_loss'].append(val_loss)
+                history['val_accuracy'].append(val_acc)
+
+                pbar.set_postfix({
+                    'loss': f"{train_loss:.4f}", 'acc': f"{train_acc * 100:.2f}%",
+                    'val_loss': f"{val_loss:.4f}", 'val_acc': f"{val_acc * 100:.2f}%"
+                })
+
+        return history
+
 
     def evaluate(self, x_test, y_test):
         """
@@ -182,13 +228,45 @@ class Network:
         print(f"Network loaded and rebuilt from {filepath}")
 
 
+def plot_history(history):
+    """Trace les courbes d'apprentissage (Loss et Accuracy)."""
+    epochs = range(1, len(history['loss']) + 1)
+
+    plt.figure(figsize=(12, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, history['accuracy'], 'b-', label='Training')
+    if history['val_accuracy']:
+        plt.plot(epochs, history['val_accuracy'], 'r--', label='Validation')
+    plt.title("Accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, history['loss'], 'b-', label='Training')
+    if history['val_loss']:
+        plt.plot(epochs, history['val_loss'], 'r--', label='Validation')
+    plt.title("Loss")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == '__main__':
     filepath = r"modele_test.json"
 
     network = Network()
     network.add(Dense(input_size=784, output_size=64))
     network.add(ActivationLayer(LeakyReLU()))
-    network.add(Dense(64, output_size=10))
+    network.add(Dense(64, output_size=16))
+    network.add(ActivationLayer(LeakyReLU()))
+    network.add(Dense(16, output_size=10))
     network.add(ActivationLayer(Softmax()))
 
     network.save(filepath)
@@ -206,5 +284,7 @@ if __name__ == '__main__':
     x_raw, y_raw = dataloader_test.load_data()
     x_test = dataloader_test.normalize(x_raw)
     y_test = dataloader_test.to_categorical(y_raw)
+    validation_data = (x_test, y_test)
 
-    n.fit(x_train, y_train, x_test, y_test, 100, 5)
+    history = n.fit(x_train, y_train, 150, 0.01, 32, validation_data=validation_data)
+    plot_history(history)
