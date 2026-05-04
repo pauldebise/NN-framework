@@ -1,9 +1,11 @@
 from core.layer import Layer
-from math_ops.losses import LossFunction
+from math_ops.losses import LossFunction, MSE, CategoricalCrossEntropy
 from core.layer import Dense
 from math_ops.activations import ReLU, Sigmoid, Softmax, ActivationLayer
 import numpy as np
 import json
+from utils.data_loader import MNISTLoader
+
 
 class Network:
     """
@@ -45,7 +47,7 @@ class Network:
             for layer in reversed(self.layers):
                 gradient = layer.backward(gradient, learning_rate)
             if (epoch + 1) % 10 == 0 or epoch == epochs - 1:
-                print(f"Époque {epoch + 1}/{epochs} - Erreur: {error:.4f}")
+                print(f"Epoch {epoch + 1}/{epochs} - Loss: {error:.4f} - Accuracy: {np.exp(-error)*100:.2f}%")
 
     def predict(self, x_test):
         """Prédit les sorties pour un jeu de données de test."""
@@ -152,12 +154,21 @@ if __name__ == '__main__':
     filepath = r"modele_test.json"
 
     network = Network()
-    network.add(Dense(input_size=784, output_size=128))
+    network.add(Dense(input_size=784, output_size=64))
     network.add(ActivationLayer(Sigmoid()))
-    network.add(Dense(128, output_size=10))
+    network.add(Dense(64, output_size=10))
     network.add(ActivationLayer(Softmax()))
 
     network.save(filepath)
     n = Network()
     n.load(filepath)
+    n.compile(CategoricalCrossEntropy())
+    #n.compile(MSE())
     n.summary()
+    dataloader = MNISTLoader(r"..\data\mnist_train.csv")
+    x_raw, y_raw = dataloader.load_data()
+
+    x_train = dataloader.normalize(x_raw)
+    y_train = dataloader.to_categorical(y_raw)
+
+    n.fit(x_train, y_train, 1000, 5)
