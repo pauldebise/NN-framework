@@ -37,13 +37,12 @@ class Sigmoid(ActivationFunction):
 class Softmax(ActivationFunction):
     """Fonction d'activation Softmax."""
     def compute(self, x):
-        return np.exp(x) / np.sum(np.exp(x), axis=0)
+        x_norm = x - np.max(x, axis=1, keepdims=True)
+        return np.exp(x_norm) / np.sum(np.exp(x_norm), axis=1, keepdims=True)
 
     def derivative(self, x):
         softmax = self.compute(x)
-    # Reshape softmax to a column vector
         s = softmax.reshape(-1, 1)
-    # Compute the Jacobian matrix
         jacobian = np.diagflat(s) - np.dot(s, s.T)
         return jacobian    
 
@@ -60,9 +59,7 @@ class ActivationLayer(Layer):
         return self.activation.compute(self.input)
 
     def backward(self, output_gradient, learning_rate):
-        # Si c'est un Softmax, on fait un produit matriciel (Jacobienne @ gradient)
         if isinstance(self.activation, Softmax):
-            return np.dot(self.activation.derivative(self.input), output_gradient)
-        
-        # Sinon (ReLU, Sigmoid), multiplication élément par élément
+            s = self.activation.compute(self.input)
+            return s * (output_gradient - np.sum(output_gradient * s, axis=1, keepdims=True))
         return output_gradient * self.activation.derivative(self.input)
