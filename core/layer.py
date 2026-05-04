@@ -34,8 +34,8 @@ class Dense(Layer):
         Initialise les poids et les biais de manière aléatoire.
         """
         super().__init__()
-        self.weights = np.random.randn(input_size, output_size)
-        self.bias = np.random.randn(1, output_size)
+        self.weights = (np.random.randn(input_size, output_size) * np.sqrt(2.0 / input_size)).astype(np.float32)
+        self.bias = np.zeros((1, output_size), dtype=np.float32)
 
     def forward(self, input_data):
         self.input_data = input_data
