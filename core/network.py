@@ -1,7 +1,7 @@
 from core.layer import Layer
 from math_ops.losses import LossFunction, MSE, CategoricalCrossEntropy
 from core.layer import Dense
-from math_ops.activations import ReLU, Sigmoid, Softmax, ActivationLayer
+from math_ops.activations import ReLU, Sigmoid, Softmax, ActivationLayer, LeakyReLU
 import numpy as np
 import json
 from utils.data_loader import MNISTLoader
@@ -172,6 +172,8 @@ class Network:
                     strategy = Sigmoid()
                 elif act_type == 'Softmax':
                     strategy = Softmax()
+                elif act_type == 'LeakyReLU':
+                    strategy = LeakyReLU()
                 else:
                     raise ValueError(f"Unknown activation function encountered during loading : {act_type}")
 
@@ -185,7 +187,7 @@ if __name__ == '__main__':
 
     network = Network()
     network.add(Dense(input_size=784, output_size=64))
-    network.add(ActivationLayer(Sigmoid()))
+    network.add(ActivationLayer(LeakyReLU()))
     network.add(Dense(64, output_size=10))
     network.add(ActivationLayer(Softmax()))
 
@@ -193,7 +195,6 @@ if __name__ == '__main__':
     n = Network()
     n.load(filepath)
     n.compile(CategoricalCrossEntropy())
-    #n.compile(MSE())
     n.summary()
 
     dataloader_train = MNISTLoader(r"..\data\mnist_train.csv")
@@ -201,9 +202,9 @@ if __name__ == '__main__':
     x_train = dataloader_train.normalize(x_raw)
     y_train = dataloader_train.to_categorical(y_raw)
 
-    dataloader_train = MNISTLoader(r"..\data\mnist_test.csv")
-    x_raw, y_raw = dataloader_train.load_data()
-    x_test = dataloader_train.normalize(x_raw)
-    y_test = dataloader_train.to_categorical(y_raw)
+    dataloader_test = MNISTLoader(r"..\data\mnist_test.csv")
+    x_raw, y_raw = dataloader_test.load_data()
+    x_test = dataloader_test.normalize(x_raw)
+    y_test = dataloader_test.to_categorical(y_raw)
 
     n.fit(x_train, y_train, x_test, y_test, 100, 5)

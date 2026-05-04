@@ -23,6 +23,13 @@ class ReLU(ActivationFunction):
     def derivative(self, x):
         return np.where(x > 0, 1.0, 0.0)
 
+class LeakyReLU(ActivationFunction):
+    """Fonction d'activation Rectified Linear Unit."""
+    def compute(self, x):
+        return np.maximum(0.1*x, x)
+
+    def derivative(self, x):
+        return np.where(x > 0, 1.0, 0.1)
 
 class Sigmoid(ActivationFunction):
     """Fonction d'activation Sigmoïde."""
