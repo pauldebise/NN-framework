@@ -30,4 +30,4 @@ class CategoricalCrossEntropy(LossFunction):
 
     def derivative(self, y_true, y_pred):
         y_pred = np.clip(y_pred, 1e-7, 1 - 1e-7)
-        return (y_pred - y_true) / y_true.shape[0]
+        return - (y_true / y_pred) / y_true.shape[0]
