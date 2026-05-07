@@ -34,8 +34,30 @@ class Dense(Layer):
         Initialise les poids et les biais de manière aléatoire.
         """
         super().__init__()
-        self.weights = (np.random.randn(input_size, output_size) * np.sqrt(2.0 / input_size)).astype(np.float32)
-        self.bias = np.zeros((1, output_size), dtype=np.float32)
+        self.__weights = (np.random.randn(input_size, output_size) * np.sqrt(2.0 / input_size)).astype(np.float32)
+        self.__bias = np.zeros((1, output_size), dtype=np.float32)
+
+    @property
+    def weights(self):
+        return self.__weights
+
+    @weights.setter
+    def weights(self, value):
+        if value.shape != self.__weights.shape:
+            raise ValueError(f"Invalid shape. Should get {self.weights.shape} but got {value.shape}.")
+        else:
+            self.__weights = value
+
+    @property
+    def bias(self):
+        return self.__bias
+
+    @bias.setter
+    def bias(self, value):
+        if value.shape != self.__bias.shape:
+            raise ValueError(f"Invalid shape. Should get {self.bias.shape} but got {value.shape}.")
+        else:
+            self.__bias = value
 
     def forward(self, input_data):
         self.input_data = input_data
