@@ -258,8 +258,53 @@ def plot_history(history):
     plt.show()
 
 
+def visualize_predictions(model, x_data, y_data, num_images=5):
+    """
+    Plots random image examples and their predictions.
+    """
+    num_samples = x_data.shape[0]
+    indices = np.random.choice(num_samples, num_images, replace=False)
+
+    x_sample = x_data[indices]
+    y_sample = y_data[indices]
+
+    predictions = model.predict(x_sample)
+    predicted_classes = np.argmax(predictions, axis=1)
+    true_classes = np.argmax(y_sample, axis=1)
+
+    plt.figure(figsize=(10, 2.5 * num_images))
+
+    for i in range(num_images):
+        plt.subplot(num_images, 2, 2 * i + 1)
+        image = x_sample[i].reshape(28, 28)
+        plt.imshow(image, cmap='gray')
+        plt.axis('off')
+
+        is_correct = predicted_classes[i] == true_classes[i]
+        color = 'green' if is_correct else 'red'
+        confidence = predictions[i][predicted_classes[i]] * 100
+
+        plt.title(f"Pred: {predicted_classes[i]} ({confidence:.1f}%)\nVrai: {true_classes[i]}", color=color)
+
+        plt.subplot(num_images, 2, 2 * i + 2)
+        probs = predictions[i] * 100
+
+        bars = plt.bar(range(10), probs, color='gray')
+        plt.xticks(range(10))
+        plt.ylim([0, 105])
+        plt.ylabel("Confiance (%)")
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+        bars[true_classes[i]].set_color('green')
+        if not is_correct:
+            bars[predicted_classes[i]].set_color('red')
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == '__main__':
-    filepath = r"modele_test.json"
+    filepath = r"model_test.json"
 
     network = Network()
     network.add(Dense(input_size=784, output_size=64))
@@ -286,5 +331,7 @@ if __name__ == '__main__':
     y_test = dataloader_test.to_categorical(y_raw)
     validation_data = (x_test, y_test)
 
-    history = n.fit(x_train, y_train, 150, 0.01, 32, validation_data=validation_data)
+    history = n.fit(x_train, y_train, 300, 0.05, 256, validation_data=validation_data)
     plot_history(history)
+    n.save(filepath)
+    visualize_predictions(n, x_test, y_test, num_images=3)
