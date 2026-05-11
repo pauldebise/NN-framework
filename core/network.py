@@ -11,31 +11,38 @@ from utils.data_loader import MNISTLoader
 
 class Network:
     """
-    Classe principale représentant le perceptron multicouche (MLP).
-    Utilise la Composition : un réseau contient une liste de couches (Layer)
-    et une fonction de perte (LossFunction).
+    The network class that contain the list of layers and the loss function.
+    It applies the forward and backward propagation.
     """
     def __init__(self):
-        """Initialise un réseau vide."""
-        self.layers = []
-        self.loss_function = None
+        """Initialize an empty network."""
+        self.__layers = []
+        self.__loss_function = None
+
+    @property
+    def layers(self):
+        return self.__layers
+
+    @property
+    def loss_function(self):
+        return self.__loss_function
 
     def add(self, layer: Layer):
         self.layers.append(layer)
 
     def compile(self, loss_strategy: LossFunction):
-        """Configure la fonction de perte du réseau."""
-        self.loss_function = loss_strategy
+        """Sets the net's loss strategy."""
+        self.__loss_function = loss_strategy
 
     def forward(self, input_data):
-        """Fait passer les données à travers toutes les couches."""
+        """Feed the input data through the network."""
         output_data = input_data
         for layer in self.layers:
             output_data = layer.forward(output_data)
         return output_data
 
     def _generate_batches(self, X, y, batch_size, drop_last=True):
-        """Helper that makes batches."""
+        """Private helper that makes batches."""
         num_samples = X.shape[0]
         indices = np.random.permutation(num_samples)
         X_shuffled = X[indices]
@@ -106,11 +113,11 @@ class Network:
 
     def evaluate(self, x_test, y_test):
         """
-        Évalue les performances du réseau sur un jeu de données de test.
-        Retourne la perte (loss) et la précision (accuracy globale).
+        Evaluate the network on a test set.
+        Return the loss and the global accuracy of the network.
         """
         if self.loss_function is None:
-            raise ValueError("Le réseau n'est pas compilé.")
+            raise ValueError("The net is not compiled.")
 
         predictions = self.forward(x_test)
 
@@ -123,7 +130,7 @@ class Network:
         return loss, accuracy
 
     def predict(self, x_test):
-        """Prédit les sorties pour un jeu de données de test."""
+        """Predicts the output for a set of data."""
         return self.forward(x_test)
 
     def summary(self, print_info: bool = True):
@@ -162,8 +169,7 @@ class Network:
 
     def save(self, filepath: str):
         """
-        Sauvegarde l'architecture et les poids du réseau dans un fichier JSON.
-        (Figure imposée : Lecture/écriture de fichiers).
+        Saves the architecture and the weights of the network in a JSON file.
         """
 
         network_data = []
@@ -193,13 +199,13 @@ class Network:
 
     def load(self, filepath: str):
         """
-        Charge l'architecture et les poids depuis un fichier JSON.
+        Load the architecture and weights of a saved network from a JSON file.
         """
 
         with open(filepath, 'r') as f:
             network_data = json.load(f)
 
-        self.layers = []
+        self.__layers = []
 
         for data in network_data:
 
@@ -229,7 +235,7 @@ class Network:
 
 
 def plot_history(history):
-    """Trace les courbes d'apprentissage (Loss et Accuracy)."""
+    """Plots the training info (Loss and Accuracy)."""
     epochs = range(1, len(history['loss']) + 1)
 
     plt.figure(figsize=(12, 5))
