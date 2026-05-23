@@ -50,6 +50,7 @@ class Network:
 
         for i in range(0, num_samples, batch_size):
             if drop_last and i + batch_size > num_samples:
+                #Drops the last batch if incomplete for consistent data input during training.
                 break
             yield X_shuffled[i:i + batch_size], y_shuffled[i:i + batch_size]
 
@@ -58,7 +59,7 @@ class Network:
         Trains the network and returns a dictionary with training info.
         """
         if self.loss_function is None:
-            raise ValueError("Le réseau n'est pas compilé.")
+            raise ValueError("The network is not compiled.")
 
         history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': []}
         has_validation = validation_data is not None
@@ -114,10 +115,10 @@ class Network:
     def evaluate(self, x_test, y_test):
         """
         Evaluate the network on a test set.
-        Return the loss and the global accuracy of the network.
+        Return the global loss and the global accuracy of the network.
         """
         if self.loss_function is None:
-            raise ValueError("The net is not compiled.")
+            raise ValueError("The network is not compiled.")
 
         predictions = self.forward(x_test)
 
@@ -129,11 +130,15 @@ class Network:
 
         return loss, accuracy
 
+
     def predict(self, x_test):
         """Predicts the output for a set of data."""
+        #For now it just returns Network.forward but could use batching and data merging in the future.
         return self.forward(x_test)
 
     def summary(self, print_info: bool = True):
+        """Returns a dictionary of the network's layer and parameter architecture.
+        If print_info is True, prints out the network architecture and its parameters."""
         total_param = 0
         current_shape = "Unknown"
         layer_details = []
@@ -337,7 +342,7 @@ if __name__ == '__main__':
     y_test = dataloader_test.to_categorical(y_raw)
     validation_data = (x_test, y_test)
 
-    history = n.fit(x_train, y_train, 300, 0.05, 256, validation_data=validation_data)
+    history = n.fit(x_train, y_train, 70, 0.05, 256, validation_data=validation_data)
     plot_history(history)
     n.save(filepath)
     visualize_predictions(n, x_test, y_test, num_images=3)
