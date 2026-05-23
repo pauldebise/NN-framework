@@ -3,8 +3,8 @@ import numpy as np
 
 class Layer(ABC):
     """
-    Classe abstraite représentant une couche générique du réseau de neurones.
-    Toutes les couches doivent implémenter une propagation avant et arrière.
+    Abstract class for a general layer of a neural network
+    Every layer must implement the forward and backward methods.
     """
     def __init__(self):
         self.input_data = None
@@ -12,26 +12,26 @@ class Layer(ABC):
 
     @abstractmethod
     def forward(self, input_data):
-        """Calcule la sortie de la couche en fonction de l'entrée."""
+        """Compute the layer output given the input data."""
         pass
 
     @abstractmethod
     def backward(self, output_gradient, learning_rate):
         """
-        Calcule le gradient par rapport à l'entrée et met à jour
-        les paramètres de la couche si nécessaire.
+        Compute the gradient of the input data with respect to the output of the layer.
+        Updates layer's parameters if necessary.
         """
         pass
 
 
 class Dense(Layer):
     """
-    Couche complètement connectée (Fully Connected Layer).
-    Hérite de Layer.
+    Fully Connected Layer.
+    Descends from Layer.
     """
     def __init__(self, input_size: int, output_size: int):
         """
-        Initialise les poids et les biais de manière aléatoire.
+        Randomly initializes weights with a normal distribution and initializes biases to 0.
         """
         super().__init__()
         self.__weights = (np.random.randn(input_size, output_size) * np.sqrt(2.0 / input_size)).astype(np.float32)
@@ -69,7 +69,8 @@ class Dense(Layer):
 
         input_gradient = np.dot(output_gradient, self.weights.T)
 
-        self.__weights -= learning_rate * weight_gradient #For more efficient weight and bias update, the setters is not used here.
+        # For more efficient weight and bias update, the setters are not used here.
+        self.__weights -= learning_rate * weight_gradient
         self.__bias -= learning_rate * bias_gradient
 
         return input_gradient
