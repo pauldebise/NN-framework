@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MLP Workbench - Direct</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="layout_canvas">
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_clear">
+        <property name="text">
+         <string>Effacer</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="layout_predictions">
+      <item>
+       <widget class="QLabel" name="label_prediction">
+        <property name="font">
+         <font>
+          <pointsize>48</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>?</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_title_probs">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Probabilités :</string>
+        </property>
+       </widget>
+      </item>
+      <item><widget class="QProgressBar" name="bar_0"><property name="value"><number>0</number></property><property name="format"><string>0 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_1"><property name="value"><number>0</number></property><property name="format"><string>1 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_2"><property name="value"><number>0</number></property><property name="format"><string>2 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_3"><property name="value"><number>0</number></property><property name="format"><string>3 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_4"><property name="value"><number>0</number></property><property name="format"><string>4 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_5"><property name="value"><number>0</number></property><property name="format"><string>5 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_6"><property name="value"><number>0</number></property><property name="format"><string>6 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_7"><property name="value"><number>0</number></property><property name="format"><string>7 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_8"><property name="value"><number>0</number></property><property name="format"><string>8 : %p%</string></property></widget></item>
+      <item><widget class="QProgressBar" name="bar_9"><property name="value"><number>0</number></property><property name="format"><string>9 : %p%</string></property></widget></item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
