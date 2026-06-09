@@ -104,11 +104,6 @@ class Network:
                 history['val_loss'].append(val_loss)
                 history['val_accuracy'].append(val_acc)
 
-                pbar.set_postfix({
-                    'loss': f"{train_loss:.4f}", 'acc': f"{train_acc * 100:.2f}%",
-                    'val_loss': f"{val_loss:.4f}", 'val_acc': f"{val_acc * 100:.2f}%"
-                })
-
         return history
 
 
@@ -295,7 +290,7 @@ def visualize_predictions(model, x_data, y_data, num_images=5):
         color = 'green' if is_correct else 'red'
         confidence = predictions[i][predicted_classes[i]] * 100
 
-        plt.title(f"Pred: {predicted_classes[i]} ({confidence:.1f}%)\nVrai: {true_classes[i]}", color=color)
+        plt.title(f"Prediction : {predicted_classes[i]} ({confidence:.1f}%)\nTarget : {true_classes[i]}", color=color)
 
         plt.subplot(num_images, 2, 2 * i + 2)
         probs = predictions[i] * 100
@@ -303,7 +298,7 @@ def visualize_predictions(model, x_data, y_data, num_images=5):
         bars = plt.bar(range(10), probs, color='gray')
         plt.xticks(range(10))
         plt.ylim([0, 105])
-        plt.ylabel("Confiance (%)")
+        plt.ylabel("Predictions (%)")
         plt.grid(axis='y', linestyle='--', alpha=0.7)
 
         bars[true_classes[i]].set_color('green')
@@ -331,12 +326,12 @@ if __name__ == '__main__':
     n.compile(CategoricalCrossEntropy())
     n.summary()
 
-    dataloader_train = MNISTLoader(r"..\data\mnist_train.csv")
+    dataloader_train = MNISTLoader(r"../data/mnist_train.csv")
     x_raw, y_raw = dataloader_train.load_data()
     x_train = dataloader_train.normalize(x_raw)
     y_train = dataloader_train.to_categorical(y_raw)
 
-    dataloader_test = MNISTLoader(r"..\data\mnist_test.csv")
+    dataloader_test = MNISTLoader(r"../data/mnist_test.csv")
     x_raw, y_raw = dataloader_test.load_data()
     x_test = dataloader_test.normalize(x_raw)
     y_test = dataloader_test.to_categorical(y_raw)

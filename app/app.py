@@ -7,11 +7,7 @@ from PyQt5.QtGui import QPainter, QPen
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5 import uic
 
-# Tes imports (à adapter si besoin)
 from core.network import Network
-from math_ops.activations import LeakyReLU, Softmax
-from math_ops.losses import CategoricalCrossEntropy
-
 
 
 class DrawCanvas(QWidget):
@@ -69,11 +65,12 @@ class DrawCanvas(QWidget):
             painter.drawLine(p1, p2)
 
 
-class SimpleApp(QMainWindow):
-    def __init__(self):
+class App(QMainWindow):
+
+    def __init__(self, model_path="best_model.json"):
         super().__init__()
 
-        uic.loadUi("interface.ui", self)
+        uic.loadUi(r"app/interface.ui", self)
 
         self.canvas = DrawCanvas()
         self.layout_canvas.insertWidget(0, self.canvas)
@@ -88,21 +85,17 @@ class SimpleApp(QMainWindow):
 
         self.model = Network()
         try:
-            self.model.load(r"best_model.json")
-            print("Modèle chargé avec succès.")
+            self.model.load(model_path)
         except Exception as e:
-            self.label_prediction.setText("Erreur")
-            print(f"Erreur modèle : {e}")
+            self.label_prediction.setText("Error")
 
     def clear_ui(self):
-        """Action du bouton Effacer"""
         self.canvas.clear()
         self.label_prediction.setText("?")
         for bar in self.bars:
             bar.setValue(0)
 
     def predict_digit(self):
-        """Pipeline de prédiction mis à jour pour le direct"""
         if not self.model.layers:
             return
 
@@ -136,9 +129,7 @@ class SimpleApp(QMainWindow):
 
         try:
             predictions = self.model.predict(x_input)
-
             probs = predictions[0] * 100
-
             predicted_class = np.argmax(probs)
             self.label_prediction.setText(str(predicted_class))
 
@@ -152,6 +143,8 @@ class SimpleApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = SimpleApp()
+    model_file = sys.argv[1] if len(sys.argv) > 1 else "../core/model_test.json"
+
+    window = App(model_path=model_file)
     window.show()
     sys.exit(app.exec_())
